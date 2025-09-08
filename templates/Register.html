@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+      width: 420px;
+      text-align: center;
+    }
+    h2 { margin-bottom: 20px; }
+    .form-group { margin-bottom: 15px; text-align: left; position: relative; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select {
+      width: 95%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    #password-strength, #username-availability, #phone-check, #password-check {
+      margin-top: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .eye {
+      position: absolute;
+      right: 15px;
+      top: 38px;
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Register</h2>
+    <form id="register-form" method="POST" action="/register_user">
+      <div class="form-group">
+        <label for="fname">First Name:</label>
+        <input type="text" id="fname" name="fname" required>
+      </div>
+      <div class="form-group">
+        <label for="lname">Last Name:</label>
+        <input type="text" id="lname" name="lname" required>
+      </div>
+
+      <!-- Country + Phone -->
+      <div class="form-group">
+        <label for="country">Country:</label>
+        <select id="country" name="country" required>
+          <option value="">-- Select Country --</option>
+          <option value="India">🇮🇳 India (+91)</option>
+          <option value="USA">🇺🇸 USA (+1)</option>
+          <option value="UK">🇬🇧 UK (+44)</option>
+          <option value="Australia">🇦🇺 Australia (+61)</option>
+          <option value="Canada">🇨🇦 Canada (+1)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" name="phone" required>
+        <div id="phone-check"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Gmail:</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Choose Username:</label>
+        <input type="text" id="username" name="username" required>
+        <div id="username-availability"></div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Choose Password:</label>
+        <input type="password" id="password" name="password" required>
+        <span class="eye" onclick="togglePassword('password')">👁</span>
+        <div id="password-strength"></div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirm">Confirm Password:</label>
+        <input type="password" id="confirm" name="confirm" required>
+        <span class="eye" onclick="togglePassword('confirm')">👁</span>
+        <div id="password-check"></div>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    // 👁 Toggle password visibility
+    function togglePassword(fieldId) {
+      const field = document.getElementById(fieldId);
+      field.type = field.type === "password" ? "text" : "password";
+    }
+
+    let usernameValid = false;
+    let passwordValid = false;
+    let confirmValid = false;
+    let phoneValid = false;
+
+    // ✅ Password Strength Check
+    const passwordInput = document.getElementById("password");
+    const strengthDiv = document.getElementById("password-strength");
+    passwordInput.addEventListener("input", function() {
+      const password = passwordInput.value;
+      let message = "";
+      let strong = true;
+
+      if (password.length < 8) { message += "❌ At least 8 characters<br>"; strong = false; }
+      else { message += "✅ 8+ characters<br>"; }
+
+      if (!/[A-Z]/.test(password)) { message += "❌ At least 1 uppercase letter<br>"; strong = false; }
+      else { message += "✅ Uppercase letter<br>"; }
+
+      if (!/[a-z]/.test(password)) { message += "❌ At least 1 lowercase letter<br>"; strong = false; }
+      else { message += "✅ Lowercase letter<br>"; }
+
+      if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) { message += "❌ At least 1 special character<br>"; strong = false; }
+      else { message += "✅ Special character<br>"; }
+
+      strengthDiv.innerHTML = message;
+      strengthDiv.style.color = strong ? "green" : "red";
+      passwordValid = strong;
+    });
+
+    // ✅ Confirm Password Match
+    const confir = document.getElementById("confirm");
+    const confir_alert = document.getElementById("password-check");
+    confir.addEventListener("input", function() {
+      if (confir.value === passwordInput.value && passwordValid) {
+        confir_alert.innerHTML = "✅ Password Match ";
+        confir_alert.style.color = "green";
+        confirmValid = true;
+      } else {
+        confir_alert.innerHTML = "❌ Password does not Match ";
+        confir_alert.style.color = "red";
+        confirmValid = false;
+      }
+    });
+
+    // ✅ Username Availability Check
+    const usernameInput = document.getElementById("username");
+    const usernameDiv = document.getElementById("username-availability");
+
+    usernameInput.addEventListener("input", async function() {
+      const username = usernameInput.value;
+
+      if (username.length < 3) {
+        usernameDiv.innerHTML = "❌ Username too short";
+        usernameDiv.style.color = "red";
+        usernameValid = false;
+        return;
+      }
+
+      const response = await fetch("/check_username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username })
+      });
+
+      const data = await response.json();
+      if (data.available) {
+        usernameDiv.innerHTML = "✅ Username available";
+        usernameDiv.style.color = "green";
+        usernameValid = true;
+      } else {
+        usernameDiv.innerHTML = "❌ Username already taken";
+        usernameDiv.style.color = "red";
+        usernameValid = false;
+      }
+    });
+
+    // ✅ Phone number validation (must be 10 digits)
+    const phoneInput = document.getElementById("phone");
+    const phoneDiv = document.getElementById("phone-check");
+
+    phoneInput.addEventListener("input", function() {
+      if (/^\d{10}$/.test(phoneInput.value)) {
+        phoneDiv.innerHTML = "✅ Valid phone number";
+        phoneDiv.style.color = "green";
+        phoneValid = true;
+      } else {
+        phoneDiv.innerHTML = "❌ Must be exactly 10 digits";
+        phoneDiv.style.color = "red";
+        phoneValid = false;
+      }
+    });
+
+    // 🚫 Block submission if checks fail
+    const form = document.getElementById("register-form");
+    form.addEventListener("submit", function(e) {
+      if (!usernameValid || !passwordValid || !confirmValid || !phoneValid) {
+        e.preventDefault();
+        alert("Please fix errors before submitting!");
+      }
+    });
+  </script>
+</body>
+</html>

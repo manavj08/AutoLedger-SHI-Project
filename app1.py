@@ -29,7 +29,7 @@ class UserDB:
         db.commit()
         db.close()
 
-
+print("Manav")
 @app.route('/')
 def home():
     return render_template('Login.html')   # your login page

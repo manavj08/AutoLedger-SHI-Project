@@ -32,6 +32,10 @@ class UserDB:
 print("Manav")
 @app.route('/')
 def home():
+    return render_template('home.html')
+
+@app.route('/Login')
+def Login():
     return render_template('Login.html')   # your login page
 
 

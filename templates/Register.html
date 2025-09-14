@@ -68,7 +68,16 @@
         <input type="text" id="lname" name="lname" required>
       </div>
 
-      <!-- Country + Phone -->
+      <div class="form-group">
+        <label for="role">I am a:</label>
+        <select id="role" name="role" required>
+            <option value="" disabled selected>-- Select your role --</option>
+            <option value="student">Student</option>
+            <option value="employee">Employee</option>
+            <option value="shopkeeper">Shopkeeper</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label for="country">Country:</label>
         <select id="country" name="country" required>
@@ -91,14 +100,12 @@
         <input type="email" id="email" name="email" required>
       </div>
 
-      <!-- Username -->
       <div class="form-group">
         <label for="username">Choose Username:</label>
         <input type="text" id="username" name="username" required>
         <div id="username-availability"></div>
       </div>
 
-      <!-- Password -->
       <div class="form-group">
         <label for="password">Choose Password:</label>
         <input type="password" id="password" name="password" required>
@@ -106,7 +113,6 @@
         <div id="password-strength"></div>
       </div>
 
-      <!-- Confirm Password -->
       <div class="form-group">
         <label for="confirm">Confirm Password:</label>
         <input type="password" id="confirm" name="confirm" required>
@@ -175,32 +181,48 @@
     const usernameDiv = document.getElementById("username-availability");
 
     usernameInput.addEventListener("input", async function() {
-      const username = usernameInput.value;
+    // Get the currently selected role from the dropdown menu
+    const roleSelect = document.getElementById("role");
+    const role = roleSelect.value;
+    const username = usernameInput.value;
 
-      if (username.length < 3) {
+    // Check if a role has been selected first. If not, show an error.
+    if (!role) {
+        usernameDiv.innerHTML = "❌ Please select a role first";
+        usernameDiv.style.color = "red";
+        usernameValid = false;
+        return; // Stop the function here
+    }
+
+    // Now, check the username length
+    if (username.length < 3) {
         usernameDiv.innerHTML = "❌ Username too short";
         usernameDiv.style.color = "red";
         usernameValid = false;
         return;
-      }
+    }
 
-      const response = await fetch("/check_username", {
+    // Send BOTH the username AND the role to the server
+    const response = await fetch("/check_username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username })
-      });
+        body: JSON.stringify({ username: username, role: role })
+    });
 
-      const data = await response.json();
-      if (data.available) {
+    const data = await response.json();
+    
+    if (data.available) {
         usernameDiv.innerHTML = "✅ Username available";
         usernameDiv.style.color = "green";
         usernameValid = true;
-      } else {
-        usernameDiv.innerHTML = "❌ Username already taken";
+    } else {
+        // This part handles the message correctly and avoids the error
+        const message = data.message || "Username already taken";
+        usernameDiv.innerHTML = `❌ ${message}`; // Using backticks ` ` is clean and safe
         usernameDiv.style.color = "red";
         usernameValid = false;
-      }
-    });
+    }
+});
 
     // ✅ Phone number validation (must be 10 digits)
     const phoneInput = document.getElementById("phone");
